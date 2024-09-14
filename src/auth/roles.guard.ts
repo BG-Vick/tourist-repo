@@ -40,9 +40,10 @@ export class RolesGuard implements CanActivate {
       }
       const user = this.jwtService.verify(token);
       req.user = user;
-
-      return user.roles.some((role) => requiredRoles.includes(role.value));
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      if (requiredRoles.includes(user.role)) {
+        return requiredRoles.includes(user.role);
+      }
+      throw new HttpException('Не достаточно прав111', HttpStatus.FORBIDDEN);
     } catch (e) {
       console.log(e);
       throw new HttpException('Не достаточно прав', HttpStatus.FORBIDDEN);

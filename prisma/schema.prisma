@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  //shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  banned    Boolean? @default(false)
+  banReason String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role      UserRole
+  rentals   Rental[] @relation("UserRentals")
+
+  @@map("users")
+}
+
+model Product {
+  id          Int             @id @default(autoincrement())
+  title       String          @unique @db.VarChar(255)
+  description String
+  image       String
+  quantity    Int             @default(0)
+  rentals     RentalProduct[] @relation("ProductRentals")
+
+  @@map("products")
+}
+
+model Rental {
+  id             Int             @id @default(autoincrement())
+  userId         Int
+  dateFrom       DateTime
+  dateTo         DateTime
+  user           User            @relation("UserRentals", fields: [userId], references: [id])
+  rentalProducts RentalProduct[] @relation("RentalProducts")
+
+  @@map("rentals")
+}
+
+model RentalProduct {
+  id        Int     @id @default(autoincrement())
+  rentalId  Int
+  productId Int
+  quantity  Int
+  rental    Rental  @relation("RentalProducts", fields: [rentalId], references: [id])
+  dish      Product @relation("ProductRentals", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("rental_products")
+}

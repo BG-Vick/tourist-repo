@@ -7,10 +7,10 @@ async function start() {
   const PORT = process.env.PORT || 7000;
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
-    .setTitle('Туристический сервис')
+    .setTitle('Сервис аренды товаров для свадьбы')
     .setDescription('Rest API ')
     .setVersion('1.0.0')
-    .addTag('TouristApp')
+    .addTag('WeddingApp')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
