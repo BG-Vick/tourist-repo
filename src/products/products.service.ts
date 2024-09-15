@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -9,6 +8,7 @@ import {
 import { ProductDto } from './dto/product.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CustomConflictException } from 'src/exceptions/conflict.exceptions';
+import { UpdateProductDto } from './dto/update-product-dto';
 
 @Injectable()
 export class ProductsService {
@@ -43,7 +43,7 @@ export class ProductsService {
     return product;
   }
 
-  async updateProduct(id: number, dto: ProductDto) {
+  async updateProduct(id: number, dto: UpdateProductDto) {
     const { quantity } = dto;
     if (quantity < 0) {
       throw new BadRequestException(
@@ -60,7 +60,11 @@ export class ProductsService {
 
     return this.prismaService.product.update({
       where: { id },
-      data: { ...dto },
+      data: {
+        description: dto.description,
+        image: dto.image,
+        quantity: dto.quantity,
+      },
     });
   }
 

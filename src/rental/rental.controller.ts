@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   UseGuards,
   UsePipes,
@@ -14,6 +15,7 @@ import { RentalService } from './rental.service';
 import { ParseIntPipe } from 'src/pipes/parce-int.pipe';
 import { Roles } from 'src/auth/roles-auth.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { UpdateRentalDto } from './dto/update-rental.dto';
 
 @Controller('rental')
 export class RentalController {
@@ -42,6 +44,17 @@ export class RentalController {
   @Get()
   getAllRentals() {
     return this.rentalService.getAllRentals();
+  }
+
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
+  @Patch(':id')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  updateRentalById(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateRentalDto,
+  ) {
+    return this.rentalService.updateRentalById(id, dto);
   }
 
   @Roles('ADMIN')

@@ -15,6 +15,7 @@ import { ProductsService } from './products.service';
 import { Roles } from 'src/auth/roles-auth.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { ParseIntPipe } from 'src/pipes/parce-int.pipe';
+import { UpdateProductDto } from './dto/update-product-dto';
 
 @Controller('products')
 export class ProductsController {
@@ -44,7 +45,7 @@ export class ProductsController {
   @UsePipes(new ValidationPipe())
   updateProduct(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: ProductDto,
+    @Body() dto: UpdateProductDto,
   ) {
     return this.productService.updateProduct(id, dto);
   }
