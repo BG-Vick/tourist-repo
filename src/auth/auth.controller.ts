@@ -1,7 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { AuthService } from './auth.service';
+import { UpdateUserAuthDataDto } from 'src/users/dto/update-user-dto';
 
 @ApiTags('Authorization')
 @Controller('auth')
@@ -15,5 +16,10 @@ export class AuthController {
   @Post('/registration')
   registration(@Body() userDto: CreateUserDto) {
     return this.authService.registration(userDto);
+  }
+
+  @Patch('/update')
+  updateUserAuthData(@Body() userDto: UpdateUserAuthDataDto) {
+    return this.authService.updateUserAuthData(userDto);
   }
 }

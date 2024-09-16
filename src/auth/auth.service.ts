@@ -10,6 +10,7 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { User } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdateUserAuthDataDto } from 'src/users/dto/update-user-dto';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +39,22 @@ export class AuthService {
     });
     return this.generateToken(user);
   }
+  async updateUserAuthData(userDto: UpdateUserAuthDataDto) {
+    const candidate = await this.userService.getUsersByEmail(userDto.email);
+    if (candidate) {
+      throw new HttpException(
+        'Пользователь с таким email уже существует',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const hashPassword = await bcrypt.hash(userDto.password, 5);
+    const user = await this.userService.updateUserAuthData({
+      ...userDto,
+      password: hashPassword,
+    });
+    return this.generateToken(user);
+  }
+
   private async generateToken(user: User) {
     const payload = { email: user.email, id: user.id, role: user.role };
     return {

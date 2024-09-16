@@ -4,6 +4,7 @@ import { User } from '@prisma/client';
 import { BanUserDto } from './dto/ban-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserAuthDataDto } from './dto/update-user-dto';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +24,18 @@ export class UsersService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async updateUserAuthData(dto: UpdateUserAuthDataDto) {
+    const updatedAuthUser = await this.prismaService.user.update({
+      where: { id: dto.userId },
+      data: { email: dto.email, password: dto.password },
+    });
+    if (!updatedAuthUser) {
+      throw new HttpException('Пользователь не найден', HttpStatus.NOT_FOUND);
+    }
+
+    return updatedAuthUser;
   }
 
   async getAllUsers() {
