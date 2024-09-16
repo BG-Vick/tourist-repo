@@ -155,7 +155,6 @@ export class RentalService {
         where: { id },
         include: { rentalProducts: true },
       });
-      console.log(rental);
       if (!rental) {
         throw new NotFoundException(`Аренда с ID ${id} не найдена`);
       }

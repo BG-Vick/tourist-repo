@@ -16,16 +16,32 @@ enum UserRole {
 
 model User {
   id        Int      @id @default(autoincrement())
-  email     String   @unique @db.VarChar(255)
+  email     String   @unique @db.VarChar(25)
   password  String   @db.VarChar(255)
   banned    Boolean? @default(false)
   banReason String?  @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  profileId Int?
   role      UserRole
   rentals   Rental[] @relation("UserRentals")
+  profile   Profile? @relation(fields: [profileId], references: [id])
 
   @@map("users")
+}
+
+model Profile {
+  id                    Int     @id @default(autoincrement())
+  preferredComunication String
+  contactData           String
+  firstName             String?
+  lastName              String?
+  adress                String?
+  comment               String?
+  userId                Int     @unique
+  User                  User[]
+
+  @@map("profiles")
 }
 
 model Product {
