@@ -60,6 +60,7 @@ model Rental {
   userId         Int
   dateFrom       DateTime
   dateTo         DateTime
+  isDelivery     Boolean?
   user           User            @relation("UserRentals", fields: [userId], references: [id])
   rentalProducts RentalProduct[] @relation("RentalProducts")
 

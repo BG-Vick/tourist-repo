@@ -42,6 +42,7 @@ export class UsersService {
     const users = await this.prismaService.user.findMany({
       include: {
         rentals: true,
+        profile: true,
       },
     });
     return users;
@@ -50,7 +51,7 @@ export class UsersService {
   async getUsersByEmail(email: string) {
     const user = await this.prismaService.user.findUnique({
       where: { email: email },
-      include: { rentals: true },
+      include: { rentals: true, profile: true },
     });
     return user;
   }
@@ -58,7 +59,7 @@ export class UsersService {
   async getUsersById(id: number) {
     const user = await this.prismaService.user.findUnique({
       where: { id },
-      include: { rentals: true },
+      include: { rentals: true, profile: true },
     });
     return user;
   }

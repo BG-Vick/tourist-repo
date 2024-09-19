@@ -224,6 +224,7 @@ export class RentalService {
         data: {
           dateFrom: dateFrom,
           dateTo: dateTo,
+          isDelivery: dto.isDelivery,
         },
       });
       const rentalProductsData = dto.rentalProducts.map((product) => ({

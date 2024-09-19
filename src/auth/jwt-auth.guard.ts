@@ -26,7 +26,6 @@ export class JwtAuthGuard implements CanActivate {
       const user = this.jwtService.verify(token);
       req.user = user;
       return true;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       console.log(e);
       throw new UnauthorizedException({

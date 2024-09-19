@@ -1,5 +1,12 @@
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsArray, IsDateString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsArray,
+  IsDateString,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateRentalDto {
   @Transform(({ value }) => Math.abs(parseInt(value, 10)))
@@ -14,6 +21,10 @@ export class CreateRentalDto {
   @IsDateString()
   @IsNotEmpty()
   dateTo: Date;
+
+  @IsOptional()
+  @IsBoolean()
+  isDelivery: boolean | null;
 
   @IsArray()
   @IsNotEmpty()

@@ -43,7 +43,7 @@ export class RolesGuard implements CanActivate {
       if (requiredRoles.includes(user.role)) {
         return requiredRoles.includes(user.role);
       }
-      throw new HttpException('Не достаточно прав111', HttpStatus.FORBIDDEN);
+      throw new HttpException('Не достаточно прав', HttpStatus.FORBIDDEN);
     } catch (e) {
       console.log(e);
       throw new HttpException('Не достаточно прав', HttpStatus.FORBIDDEN);
