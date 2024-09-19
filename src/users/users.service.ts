@@ -1,10 +1,16 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from '@prisma/client';
 
 import { BanUserDto } from './dto/ban-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserAuthDataDto } from './dto/update-user-dto';
+import { ROLES } from 'src/utils/const-enum';
 
 @Injectable()
 export class UsersService {
@@ -56,7 +62,10 @@ export class UsersService {
     return user;
   }
 
-  async getUsersById(id: number) {
+  async getUsersById(id: number, currentUser) {
+    if (currentUser.id !== id && currentUser.role !== ROLES.admin) {
+      throw new UnauthorizedException('Вы не можете совершить это действие');
+    }
     const user = await this.prismaService.user.findUnique({
       where: { id },
       include: { rentals: true, profile: true },

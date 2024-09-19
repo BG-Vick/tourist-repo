@@ -5,16 +5,24 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRentalDto } from './dto/create-rental.dto';
 import { UpdateRentalDto } from './dto/update-rental.dto';
+import { ROLES } from 'src/utils/const-enum';
 
 @Injectable()
 export class RentalService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createRental(createRentalDto: CreateRentalDto) {
+  async createRental(createRentalDto: CreateRentalDto, currentUser) {
+    if (
+      currentUser.id !== createRentalDto.userId &&
+      currentUser.role !== ROLES.admin
+    ) {
+      throw new UnauthorizedException('Вы не можете совершить это действие');
+    }
     const { userId, rentalProducts } = createRentalDto;
     const dateFrom = new Date(createRentalDto.dateFrom);
     const dateTo = new Date(createRentalDto.dateTo);
@@ -77,7 +85,7 @@ export class RentalService {
     return rentalTransaction;
   }
 
-  async getRentalById(id: number) {
+  async getRentalById(id: number, currentUser) {
     const rental = await this.prisma.rental.findUnique({
       where: { id },
       include: { rentalProducts: true },
@@ -85,10 +93,19 @@ export class RentalService {
     if (!rental) {
       throw new NotFoundException(`Аренда с ID ${id} не найдена`);
     }
+    if (currentUser.id !== rental?.userId && currentUser.role !== ROLES.admin) {
+      throw new UnauthorizedException('Вы не можете совершить это действие');
+    }
+    if (!rental) {
+      throw new NotFoundException(`Аренда с ID ${id} не найдена`);
+    }
     return rental;
   }
 
-  async getRentalByUserId(id: number) {
+  async getRentalByUserId(id: number, currentUser) {
+    if (currentUser.id !== id && currentUser.role !== ROLES.admin) {
+      throw new UnauthorizedException('Вы не можете совершить это действие');
+    }
     const rental = await this.prisma.rental.findMany({
       where: { userId: id },
       include: { rentalProducts: true },
@@ -107,7 +124,7 @@ export class RentalService {
     return allRentals;
   }
 
-  async deleteRentalById(id: number) {
+  async deleteRentalById(id: number, currentUser) {
     const deleteTransaction = await this.prisma.$transaction(async (prisma) => {
       const rental = await prisma.rental.findUnique({
         where: { id },
@@ -116,7 +133,12 @@ export class RentalService {
       if (!rental) {
         throw new NotFoundException(`Аренда с ID ${id} не найдена`);
       }
-
+      if (
+        currentUser.id !== rental.userId &&
+        currentUser.role !== ROLES.admin
+      ) {
+        throw new UnauthorizedException('Вы не можете совершить это действие');
+      }
       for (const rentalProduct of rental.rentalProducts) {
         const { productId, quantity } = rentalProduct;
         const productInDb = await prisma.product.findUnique({
@@ -146,7 +168,7 @@ export class RentalService {
     return deleteTransaction;
   }
 
-  async updateRentalById(id: number, dto: UpdateRentalDto) {
+  async updateRentalById(id: number, dto: UpdateRentalDto, currentUser) {
     // сначала находим rental c связанными продуктами
     const dateFrom = new Date(dto.dateFrom);
     const dateTo = new Date(dto.dateTo);
@@ -158,7 +180,12 @@ export class RentalService {
       if (!rental) {
         throw new NotFoundException(`Аренда с ID ${id} не найдена`);
       }
-
+      if (
+        currentUser.id !== rental.userId &&
+        currentUser.role !== ROLES.admin
+      ) {
+        throw new UnauthorizedException('Вы не можете совершить это действие');
+      }
       //  Затем работаем с rentalProduct, то есть откатываем все
       //  изменения назад к тому, что было если бы этого заказа не было
       //  то есть возвращаем продуктам quantity

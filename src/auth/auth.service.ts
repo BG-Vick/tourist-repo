@@ -11,6 +11,7 @@ import { User } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserAuthDataDto } from 'src/users/dto/update-user-dto';
+import { ROLES } from 'src/utils/const-enum';
 
 @Injectable()
 export class AuthService {
@@ -39,7 +40,13 @@ export class AuthService {
     });
     return this.generateToken(user);
   }
-  async updateUserAuthData(userDto: UpdateUserAuthDataDto) {
+  async updateUserAuthData(userDto: UpdateUserAuthDataDto, currentUser) {
+    if (
+      currentUser.id !== userDto.userId &&
+      currentUser.role !== ROLES.superAdmin
+    ) {
+      throw new UnauthorizedException('Вы не можете совершить это действие');
+    }
     const candidate = await this.userService.getUsersByEmail(userDto.email);
     if (candidate) {
       throw new HttpException(

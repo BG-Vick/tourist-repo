@@ -16,7 +16,7 @@ enum UserRole {
 
 model User {
   id        Int      @id @default(autoincrement())
-  email     String   @unique @db.VarChar(25)
+  email     String   @unique @db.VarChar(50)
   password  String   @db.VarChar(255)
   banned    Boolean? @default(false)
   banReason String?  @db.VarChar(255)

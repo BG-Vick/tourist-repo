@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -16,27 +17,43 @@ import { ParseIntPipe } from 'src/pipes/parce-int.pipe';
 import { Roles } from 'src/auth/roles-auth.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UpdateRentalDto } from './dto/update-rental.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('rental')
 export class RentalController {
   constructor(private readonly rentalService: RentalService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  async createRental(@Body() createRentalDto: CreateRentalDto) {
-    return this.rentalService.createRental(createRentalDto);
+  async createRental(
+    @Body() createRentalDto: CreateRentalDto,
+    @Req() req: Express.Request,
+  ) {
+    const currentUser = req['user'];
+    return this.rentalService.createRental(createRentalDto, currentUser);
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
-  getRentalById(@Param('id', ParseIntPipe) id: number) {
-    return this.rentalService.getRentalById(id);
+  getRentalById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Express.Request,
+  ) {
+    const currentUser = req['user'];
+    return this.rentalService.getRentalById(id, currentUser);
   }
 
   @Get('/user/:id')
+  @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
-  getRentalByUserId(@Param('id', ParseIntPipe) id: number) {
-    return this.rentalService.getRentalByUserId(id);
+  getRentalByUserId(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Express.Request,
+  ) {
+    const currentUser = req['user'];
+    return this.rentalService.getRentalByUserId(id, currentUser);
   }
 
   @Roles('ADMIN')
@@ -46,22 +63,26 @@ export class RentalController {
     return this.rentalService.getAllRentals();
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   updateRentalById(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateRentalDto,
+    @Req() req: Express.Request,
   ) {
-    return this.rentalService.updateRentalById(id, dto);
+    const currentUser = req['user'];
+    return this.rentalService.updateRentalById(id, dto, currentUser);
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  deleteRentalById(@Param('id', ParseIntPipe) id: number) {
-    return this.rentalService.deleteRentalById(id);
+  deleteRentalById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Express.Request,
+  ) {
+    const currentUser = req['user'];
+    return this.rentalService.deleteRentalById(id, currentUser);
   }
 }

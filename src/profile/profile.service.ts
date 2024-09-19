@@ -1,8 +1,14 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProfileDto } from './dto/create-profile.dto';
 import { UsersService } from 'src/users/users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ROLES } from 'src/utils/const-enum';
 
 @Injectable()
 export class ProfileService {
@@ -11,8 +17,11 @@ export class ProfileService {
     private userService: UsersService,
   ) {}
 
-  async createProfile(dto: ProfileDto) {
-    const user = await this.userService.getUsersById(dto.userId);
+  async createProfile(dto: ProfileDto, currentUser) {
+    if (currentUser.id !== dto.userId && currentUser.role !== ROLES.admin) {
+      throw new UnauthorizedException('Вы не можете совершить это действие');
+    }
+    const user = await this.userService.getUsersById(dto.userId, currentUser);
     if (!user) {
       throw new HttpException(
         `Пользователь с таким ID не найден, вы пытаетесь передать ID:${dto.userId} `,
@@ -36,16 +45,21 @@ export class ProfileService {
     return profile;
   }
 
-  async updateProfileById(id: number, dto: UpdateProfileDto) {
+  async updateProfileById(id: number, dto: UpdateProfileDto, currentUser) {
+    if (currentUser.id !== id && currentUser.role !== ROLES.admin) {
+      throw new UnauthorizedException('Вы не можете совершить это действие');
+    }
     const candidateProfile = await this.prismaService.profile.findUnique({
       where: { userId: id },
     });
+
     if (!candidateProfile) {
       throw new HttpException(
         `Не удалось найти профиль с  ID:${id}`,
         HttpStatus.BAD_REQUEST,
       );
     }
+
     const updatedProfile = await this.prismaService.profile.update({
       where: { userId: id },
       data: {

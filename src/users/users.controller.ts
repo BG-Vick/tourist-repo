@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Req,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -15,6 +16,7 @@ import { Roles } from 'src/auth/roles-auth.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { BanUserDto } from './dto/ban-user.dto';
 import { ParseIntPipe } from 'src/pipes/parce-int.pipe';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiTags('Users')
 @Controller('users')
@@ -32,11 +34,14 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Получить пользователя по id' })
   //@ApiResponse({ status: 200, type: User })
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   @Get(':id')
-  getUsersById(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.getUsersById(id);
+  @UseGuards(JwtAuthGuard)
+  getUsersById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Express.Request,
+  ) {
+    const currentUser = req['user'];
+    return this.usersService.getUsersById(id, currentUser);
   }
 
   @ApiOperation({ summary: 'Заблокировать пользователя' })
