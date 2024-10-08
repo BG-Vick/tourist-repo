@@ -27,6 +27,17 @@ export class RentalService {
     const dateFrom = new Date(createRentalDto.dateFrom);
     const dateTo = new Date(createRentalDto.dateTo);
 
+    const currentUsersRental = await this.prisma.rental.findFirst({
+      where: { userId },
+    });
+
+    if (currentUsersRental) {
+      throw new HttpException(
+        'У данного пользователя уже есть заказ',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const rentalTransaction = await this.prisma.$transaction(async (prisma) => {
       const user = await prisma.user.findUnique({
         where: { id: userId },
