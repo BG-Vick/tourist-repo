@@ -15,6 +15,17 @@ export class ProductsService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async createProduct(dto: ProductDto) {
+    const productWithSameTitle = await this.prismaService.product.findUnique({
+      where: {
+        title: dto.title,
+      },
+    });
+    if (productWithSameTitle) {
+      throw new HttpException(
+        `Продукт с названием  ${dto.title}  уже существует`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const post = await this.prismaService.product.create({
       data: {
         ...dto,
@@ -63,7 +74,9 @@ export class ProductsService {
       data: {
         description: dto.description,
         image: dto.image,
+        category: dto.category,
         quantity: dto.quantity,
+        price: dto.price,
       },
     });
   }

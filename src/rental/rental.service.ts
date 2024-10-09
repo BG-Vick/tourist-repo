@@ -11,10 +11,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRentalDto } from './dto/create-rental.dto';
 import { UpdateRentalDto } from './dto/update-rental.dto';
 import { ROLES } from 'src/utils/const-enum';
-
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { ProductsService } from 'src/products/products.service';
 @Injectable()
 export class RentalService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private productServise: ProductsService,
+  ) {}
 
   async createRental(createRentalDto: CreateRentalDto, currentUser) {
     if (
@@ -121,10 +125,43 @@ export class RentalService {
       where: { userId: id },
       include: { rentalProducts: true },
     });
+
     if (!rental) {
       throw new NotFoundException(`Аренда с ID ${id} не найдена`);
     }
-    return rental;
+    if (rental) {
+      const rentalProductArr = rental[0].rentalProducts;
+      const updatedRental = {
+        id: rental[0].id,
+        userId: rental[0].userId,
+        dateFrom: rental[0].dateFrom,
+        dateTo: rental[0].dateTo,
+        isDelivery: rental[0].isDelivery,
+        status: rental[0].status,
+        createdAt: rental[0].createdAt,
+        totalPrice: 0,
+        rentalProducts: [],
+      };
+      for (const oneRental of rentalProductArr) {
+        const currentProduct = await this.productServise.getProductById(
+          oneRental.productId,
+        );
+
+        if (currentProduct) {
+          updatedRental.rentalProducts.push({
+            id: currentProduct.id,
+            title: currentProduct.title,
+            description: currentProduct.description,
+            category: currentProduct.category,
+            price: currentProduct.price,
+            image: currentProduct.image,
+            quantity: oneRental.quantity,
+          });
+          updatedRental.totalPrice += currentProduct.price * oneRental.quantity;
+        }
+      }
+      return updatedRental;
+    }
   }
 
   async getAllRentals() {
@@ -263,6 +300,7 @@ export class RentalService {
           dateFrom: dateFrom,
           dateTo: dateTo,
           isDelivery: dto.isDelivery,
+          status: dto.status,
         },
       });
       const rentalProductsData = dto.rentalProducts.map((product) => ({
@@ -282,5 +320,39 @@ export class RentalService {
       return updatedRentalIncludeRentalProducts;
     });
     return updateTransaction;
+  }
+
+  async findOldRental() {
+    const expirationTime = new Date();
+    expirationTime.setHours(expirationTime.getHours() - 3);
+
+    const oldRental = await this.prisma.rental.findMany({
+      where: {
+        status: 'IN_PROGRESS',
+        createdAt: {
+          lt: expirationTime,
+        },
+      },
+    });
+
+    return oldRental;
+  }
+
+  async deleteExpiredRentals() {
+    const oldRentals = await this.findOldRental();
+    const currentUser = {
+      role: ROLES.admin,
+      id: null,
+    };
+    if (oldRentals?.length) {
+      for (const rental of oldRentals) {
+        this.deleteRentalById(rental.id, currentUser);
+      }
+    }
+  }
+
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async handleCron() {
+    await this.deleteExpiredRentals();
   }
 }

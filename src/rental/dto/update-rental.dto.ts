@@ -1,10 +1,13 @@
+import { RentalStatus } from '@prisma/client';
 import {
   IsNotEmpty,
   IsArray,
   IsDateString,
   IsOptional,
   IsBoolean,
+  IsEnum,
 } from 'class-validator';
+import { RentalStatusType } from 'src/utils/const-enum';
 
 export class UpdateRentalDto {
   @IsDateString()
@@ -18,6 +21,9 @@ export class UpdateRentalDto {
   @IsOptional()
   @IsBoolean({ message: 'Значение должно быть типа boolean ' })
   isDelivery: boolean | null;
+
+  @IsEnum(RentalStatus)
+  status: RentalStatusType;
 
   @IsArray()
   @IsNotEmpty()

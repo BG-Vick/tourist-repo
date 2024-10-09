@@ -1,0 +1,20 @@
+-- CreateEnum
+CREATE TYPE "RentalStatus" AS ENUM ('IN_PROGRESS', 'IN_DELIVERY');
+
+-- AlterTable
+ALTER TABLE "products" ADD COLUMN     "category" TEXT,
+ADD COLUMN     "price" INTEGER NOT NULL DEFAULT 0,
+ALTER COLUMN "title" DROP NOT NULL,
+ALTER COLUMN "description" DROP NOT NULL,
+ALTER COLUMN "image" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "profiles" ALTER COLUMN "preferredComunication" DROP NOT NULL,
+ALTER COLUMN "contactData" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "rentals" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "status" "RentalStatus" NOT NULL DEFAULT 'IN_PROGRESS';
+
+-- AlterTable
+ALTER TABLE "users" ALTER COLUMN "role" SET DEFAULT 'USER';
